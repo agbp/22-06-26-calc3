@@ -1,0 +1,36 @@
+{
+	"name": "simple_calculator",
+	"version": "0.0.3",
+	"description": "",
+	"private": true,
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1",
+		"wpserv": "npx webpack serve",
+		"watch": "npx webpack watch"
+	},
+	"author": {
+		"name": "Andrey Golovin",
+		"email": "Andrey.L.Golovin@gmail.com",
+		"url": "https://alango.pro/"
+	},
+	"license": "UNLICENSED",
+	"devDependencies": {
+		"@types/lodash": "^4.14.182",
+		"@types/node": "^18.0.0",
+		"@types/webpack": "^5.28.0",
+		"@typescript-eslint/eslint-plugin": "^5.29.0",
+		"@typescript-eslint/parser": "^5.29.0",
+		"babel-loader": "^8.2.5",
+		"eslint": "^8.18.0",
+		"eslint-config-airbnb": "^19.0.4",
+		"eslint-config-airbnb-base": "^15.0.0",
+		"eslint-config-airbnb-typescript": "^17.0.0",
+		"html-webpack-plugin": "^5.5.0",
+		"ts-loader": "^9.3.1",
+		"ts-node": "^10.8.1",
+		"typescript": "^4.7.4",
+		"webpack": "^5.73.0",
+		"webpack-cli": "^4.10.0",
+		"webpack-dev-server": "^4.9.2"
+	}
+}

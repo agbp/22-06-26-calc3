@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link rel="stylesheet" , href="/styles/style.css">
+	<title>Calculator</title>
+</head>
+
+<body>
+	<div class="container">
+		<div class="header">
+			<h1>Calculator</h1>
+		</div>
+		<div class='calculator'>
+			<input id='calc_input' type="number">
+			<div class="logo_menu_container">
+				<h2 class="logo">AlA Go</h2>
+				<div class="menu_container">
+					<button id="btn_history"><span class="hotkey">h</span>istory</button>
+					<button id="btn_scientific"><span class="hotkey">s</span>cientific</button>
+				</div>
+			</div>
+			<div id="calc_history" class="history hidden">
+				<ul id="calc_history_list">
+				</ul>
+			</div>
+			<div class="buttons">
+				<div class="buttons-column buttons-column__6">
+					<div class="button-group">
+						<button id="btn_7">7</button>
+						<button id="btn_8">8</button>
+						<button id="btn_9">9</button>
+					</div>
+					<div class="button-group">
+						<button id="btn_4">4</button>
+						<button id="btn_5">5</button>
+						<button id="btn_6">6</button>
+					</div>
+					<div class="button-group">
+						<button id="btn_1">1</button>
+						<button id="btn_2">2</button>
+						<button id="btn_3">3</button>
+					</div>
+					<div class="button-group">
+						<button id="btn_0">0</button>
+						<button id="btn_pt">.</button>
+					</div>
+				</div>
+				<div class="buttons-column buttons-column__4">
+					<div class="button-group">
+						<button id="btn_clear">С</button>
+						<button id="btn_backspace">&larr;</button>
+					</div>
+					<div class="button-group">
+						<button id="btn_plus">+</button>
+						<button id="btn_minus">-</button>
+					</div>
+					<div class="button-group">
+						<button id="btn_multiply">×</button>
+						<button id="btn_divide">/</button>
+						<button id="btn_percent">%</button>
+					</div>
+					<div id="calc_scientific" class="calc_scientific hidden">
+						<div class="button-group">
+							<button id="btn_pow" class="calc_scientific">^</button>
+							<button id="btn_sqrt" class="calc_scientific">√</button>
+						</div>
+						<div class="button-group">
+							<button id="btn_sin" class="calc_scientific">sin(x)</button>
+							<button id="btn_cos" class="calc_scientific">cos(x)</button>
+						</div>
+						<div class="button-group">
+							<button id="btn_asin" class="calc_scientific">asin(x)</button>
+							<button id="btn_acos" class="calc_scientific">acos(x)</button>
+						</div>
+						<div class="button-group">
+							<button id="btn_log" class="calc_scientific">log(x)</button>
+							<button id="btn_oneDivX" class="calc_scientific">1/x</button>
+						</div>
+					</div>
+					<div class="button-group">
+						<button id="btn_equal">=</button>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="test">
+		<span>test</span>
+		<nav></nav>
+	</div>
+	<script src="./js/bundle.js"></script>
+</body>
+
+</html>

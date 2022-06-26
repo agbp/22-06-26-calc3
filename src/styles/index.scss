@@ -1,0 +1,196 @@
+$padding: 6px;
+
+@font-face {
+	font-family: 'lcdmonoultra';
+	src: url('../assets/fonts/lcdmu___-webfont.woff2') format('woff2'),
+		url('../assets/fonts/lcdmu___-webfont.woff') format('woff');
+	font-weight: normal;
+	font-style: normal;
+}
+
+* {
+	font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+	border-radius: 5px;
+	color: red;
+}
+
+body {
+	background-color: #444;
+	background: radial-gradient(#222, #444);
+	background-repeat: no-repeat;
+	background-size: cover;
+}
+
+.container {
+	margin: auto;
+	max-width: 600px;
+	text-align: center;
+	height: 100vh;
+	overflow: auto;
+}
+
+.calculator {
+
+	display: flex;
+	flex-direction: column;
+	padding: 10px;
+	border: solid 1px gray;
+	/* background: linear-gradient(to bottom right, #333, #999); */
+	background: radial-gradient(#555, #777);
+	max-height: 100vh;
+	box-shadow: 5px 5px 10px #000;
+	overflow: auto;
+
+	input {
+		flex: 1;
+		margin: 5px;
+		height: 200px;
+		background-color: #333;
+		color: #0f0;
+		text-shadow: 0 0 5px #090;
+		font-size: 56px;
+		border: solid 1px #333;
+		text-align: right;
+		font-family: 'lcdmonoultra';
+		font-weight: 100;
+		outline: none;
+		-webkit-box-shadow: inset 0 0 10px #000;
+		-moz-box-shadow: inset 0 0 10px #000;
+		box-shadow: inset 1px 1px 10px #000, inset -1px -1px 4px #fff;
+		padding: 10px;
+
+		//background: transparent;
+	}
+
+	input:focus {
+		border: solid 1px grey;
+	}
+
+	.logo_menu_container {
+		display: flex;
+		justify-content: space-between;
+		padding: 0 5px;
+
+		.logo {
+			color: #bbb;
+			padding: 0 10px;
+			text-shadow: 0px 0px 3px black, 0px 0px 1px white;
+			font-weight: 700;
+		}
+
+		.menu_container {
+			display: flex;
+
+			button {
+				padding: 3px 5px;
+				margin: 0 1px;
+				background-color: #000;
+				background: linear-gradient(to bottom right, #000, #333), radial-gradient(#555, #666);
+				box-shadow: 0 0 1px #000, inset -1px -1px 1px #000, inset 1px 1px 1px #aaa;
+				border: solid 1px black;
+				cursor: pointer;
+				color: #aaa;
+				text-shadow: 0 0 10px white;
+				transition: color 1s, transform .5s;
+			}
+		}
+	}
+
+	.hotkey {
+		color: yellow;
+	}
+
+	.btn_history {
+		position: sticky;
+		top: 0px;
+		left: 5px;
+		display: block;
+	}
+
+	.history {
+		overflow-y: scroll;
+		margin: 10px 0;
+		min-height: 50px;
+		height: 180px;
+		max-height: 180px;
+		padding: 2px 5px;
+		background: #000;
+		text-align: right;
+		list-style: none;
+		overflow-x: hidden;
+		box-shadow: inset 1px 1px 4px #000, inset -1px -1px 2px #fff;
+
+		li {
+			color: #080;
+			cursor: pointer;
+		}
+	}
+
+	.hidden {
+		margin: 0;
+		height: 0;
+		overflow-y: hidden;
+		visibility: hidden;
+		min-height: 0px;
+		max-height: 0px;
+		transition: 1s cubic-bezier(0.03, 0.65, 0.95, 0.44);
+	}
+
+	.shown {
+		visibility: visible;
+		transition: 1s cubic-bezier(0.03, 0.65, 0.95, 0.44);
+	}
+
+	.buttons {
+		display: flex;
+
+		.buttons-column {
+			padding: 3px;
+			display: flex;
+			flex-direction: column;
+		}
+
+		.buttons-column__6 {
+			flex: 6;
+		}
+
+		.buttons-column__4 {
+			flex: 4;
+		}
+
+		.button-group {
+			display: flex;
+			flex: 1;
+		}
+
+		button {
+			flex: 1;
+			margin: 2px;
+			background: linear-gradient(to bottom right, #333, #555), radial-gradient(#777, #888);
+
+			padding: 5px;
+			box-shadow: 0 0 10px rgba(0, 0, 0, 0.5), inset -1px -1px 2px #000, inset 1px 1px 1px #aaa;
+			// border: solid 1px grey;
+			cursor: pointer;
+			color: #aaa;
+			text-shadow: 0 0 10px white;
+			transition: color 1s, transform .5s;
+		}
+
+		button:hover {
+			transform: translate(1px, 1px);
+			transform: scale(.99);
+			box-shadow: 0 0 10px rgba(0, 0, 0, 0.5), inset 1px 1px 1px #aaa;
+			color: #777;
+		}
+
+		.calc_scientific {
+			background: linear-gradient(to bottom right, #533, #755), radial-gradient(#977, #a88);
+			height: auto;
+		}
+
+	}
+}
