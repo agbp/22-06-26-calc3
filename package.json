@@ -5,8 +5,10 @@
 	"private": true,
 	"scripts": {
 		"test": "echo \"Error: no test specified\" && exit 1",
-		"wpserv": "npx webpack serve",
-		"watch": "npx webpack watch"
+		"serv": "npx webpack serve",
+		"watch": "npx webpack watch",
+		"build": "set NODE_ENV=production && npx webpack",
+		"wp": "npx webpack"
 	},
 	"author": {
 		"name": "Andrey Golovin",
@@ -16,16 +18,23 @@
 	"license": "UNLICENSED",
 	"devDependencies": {
 		"@types/lodash": "^4.14.182",
+		"@types/mini-css-extract-plugin": "^2.5.1",
 		"@types/node": "^18.0.0",
 		"@types/webpack": "^5.28.0",
 		"@typescript-eslint/eslint-plugin": "^5.29.0",
 		"@typescript-eslint/parser": "^5.29.0",
 		"babel-loader": "^8.2.5",
+		"css-loader": "^6.7.1",
+		"dotenv": "^16.0.1",
 		"eslint": "^8.18.0",
 		"eslint-config-airbnb": "^19.0.4",
 		"eslint-config-airbnb-base": "^15.0.0",
 		"eslint-config-airbnb-typescript": "^17.0.0",
 		"html-webpack-plugin": "^5.5.0",
+		"mini-css-extract-plugin": "^2.6.1",
+		"sass": "^1.53.0",
+		"sass-loader": "^13.0.1",
+		"style-loader": "^3.3.1",
 		"ts-loader": "^9.3.1",
 		"ts-node": "^10.8.1",
 		"typescript": "^4.7.4",
