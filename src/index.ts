@@ -63,7 +63,8 @@ interface CalculatorInterface {
 // или undefined, если ничего не найдено
 function getCookie(name: string) {
 	const matches = document.cookie.match(
-		new RegExp(`(?:^|; )${name.replace(/([\.$?*|{}\(\)\[\]\\\/\+^])/g, '\\$1')}=([^;]*)`),
+		new RegExp(`(?:^|; )${name.replace(/([.$?*|{}()[\]\\/+^])/g, '\\$1')}=([^;]*)`),
+		// new RegExp(`(?:^|; )${name.replace(/([\.$?*|{}\(\)\[\]\\\/\+^])/g, '\\$1')}=([^;]*)`),
 	);
 	return matches ? decodeURIComponent(matches[1]) : undefined;
 }
@@ -290,6 +291,7 @@ const calculator: CalculatorInterface = {
 			id: OperationId.equal,
 			bittonId: 'btn_equal',
 			arity: 0,
+			// eslint-disable-next-line @typescript-eslint/no-unused-vars
 			action: (a: number, b: number) => NaN,
 			representation: '=',
 		});

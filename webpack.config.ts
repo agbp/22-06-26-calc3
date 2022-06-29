@@ -4,24 +4,25 @@ import HtmlWebpackPlugin from 'html-webpack-plugin';
 import MiniCssExtractPlugin from 'mini-css-extract-plugin';
 import 'webpack-dev-server';
 
-function isProd() {
-	return process.env.NODE_ENV && process.env.NODE_ENV.replace(/\s/g, '') === 'production';
-}
-
-const outputDirName = isProd() ? 'prod' : 'dist';
+const isProd = process.env.NODE_ENV && process.env.NODE_ENV.replace(/\s/g, '') === 'production';
+const outputDirName = isProd ? 'prod' : 'dist';
 
 const config: webpack.Configuration = {
 	entry: './src/index.ts',
-	mode: isProd() ? 'production' : 'development',
-	devtool: isProd() ? undefined : 'inline-source-map',
+	mode: isProd ? 'production' : 'development',
+	devtool: isProd ? undefined : 'inline-source-map',
 	output: {
-		filename: 'js/main.js',
+		filename: isProd ? 'calc/js/main.js' : 'js/main.js',
 		path: path.resolve(__dirname, outputDirName),
-		assetModuleFilename: 'assets/[name].[ext]',
+		assetModuleFilename: isProd ? 'calc/assets/[name].[ext]' : 'assets/[name].[ext]',
 		clean: true,
 	},
 	module: {
 		rules: [
+			{
+				test: /favicon\.ico$/,
+				loader: '[name].[ext]',
+			},
 			{
 				test: /\.tsx?$/,
 				use: 'ts-loader',
@@ -30,7 +31,7 @@ const config: webpack.Configuration = {
 			{
 				test: /\.s[ac]ss$/i,
 				use: [
-					isProd() ? MiniCssExtractPlugin.loader : 'style-loader',
+					isProd ? MiniCssExtractPlugin.loader : 'style-loader',
 					'css-loader',
 					'sass-loader',
 				],
@@ -40,12 +41,12 @@ const config: webpack.Configuration = {
 	},
 	plugins: [
 		new HtmlWebpackPlugin({
-			title: isProd() ? 'production mode' : 'development mode',
+			title: isProd ? 'Calculator' : 'development mode',
 			template: path.resolve(__dirname, './src/template.html'),
-			filename: isProd() ? 'calc.html' : 'index.html',
+			filename: isProd ? 'calc.html' : 'index.html',
 		}),
 		new MiniCssExtractPlugin({
-			filename: './styles/style.css',
+			filename: isProd ? './calc/styles/style.css' : './styles/style.css',
 		}),
 	],
 

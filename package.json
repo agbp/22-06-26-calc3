@@ -17,7 +17,6 @@
 	},
 	"license": "UNLICENSED",
 	"devDependencies": {
-		"@types/lodash": "^4.14.182",
 		"@types/mini-css-extract-plugin": "^2.5.1",
 		"@types/node": "^18.0.0",
 		"@types/webpack": "^5.28.0",
