@@ -393,3 +393,4 @@ const calculator: CalculatorInterface = {
 };
 
 calculator.init();
+
