@@ -26,10 +26,14 @@ interface OperationInterface {
 	action: (...args: number[]) => number;
 }
 
-interface StackElement {
-	operation: OperationInterface;
-	operands: number[];
-	result: number;
+interface HistoryElement {
+	operation: OperationInterface,
+	operands: number[],
+	result: number,
+}
+
+interface HistoryElementAdding extends HistoryElement {
+	initialization?: boolean,
 }
 
 interface CalculatorInterface {
@@ -37,7 +41,8 @@ interface CalculatorInterface {
 	historyDiv: HTMLDivElement;
 	scientificDiv: HTMLDivElement;
 	historyList: HTMLUListElement;
-	historyListData: string[];
+	historyTable: HTMLTableElement;
+	historyListData: HistoryElement[];
 	stack: (number | OperationId)[];
 	operations: OperationInterface[];
 	waiting4NewNumber: boolean;
@@ -57,7 +62,8 @@ interface CalculatorInterface {
 	operationHandler: (input: OperationId) => void,
 	digitHandler: (input: string) => void,
 	addDigitOrOperation: (digit: string | OperationId) => void;
-	addToHistoryList: (arg: string, initialization?: boolean) => void;
+	// addToHistoryList: (arg: string, initialization?: boolean) => void;
+	addToHistoryList: (data: HistoryElementAdding) => void;
 	getHistoryList: () => void;
 	saveHistoryList: () => void;
 }
@@ -67,6 +73,7 @@ const calculator: CalculatorInterface = {
 	historyDiv: document.getElementById('calc_history') as HTMLDivElement,
 	scientificDiv: document.getElementById('calc_scientific') as HTMLDivElement,
 	historyList: document.getElementById('calc_history_list') as HTMLUListElement,
+	historyTable: document.getElementById('calc_history_table') as HTMLTableElement,
 	historyListData: [],
 	stack: [],
 	waiting4NewNumber: false,
@@ -310,15 +317,21 @@ const calculator: CalculatorInterface = {
 				operands.push(this.stack.pop() as number);
 			}
 			operands.push(Number(this.inputElement.value));
-			result = operation?.action.apply(null, operands) ?? NaN;
-			this.inputElement.value = String(result);
-			this.addToHistoryList(`${operands[0]}${operation?.representation}${operands[1]}=${this.inputElement.value}`);
+			if (operation) {
+				result = operation?.action.apply(null, operands) ?? NaN;
+				this.inputElement.value = String(result);
+				// this.addToHistoryList(`${operands[0]}${operation?.representation}${operands[1]}=${this.inputElement.value}`);
+				this.addToHistoryList({ operation, operands, result });
+			}
 		} else { // there is no data in stack to calculate
 			result = Number(this.inputElement.value);
 		}
-		if (currOperation?.arity === 1) { // no need to push in stack, just calculate right now
-			result = currOperation?.action(Number(this.inputElement.value)) ?? NaN;
-			this.addToHistoryList(`${currOperation.representation}(${this.inputElement.value})=${result}`);
+		if (currOperation && currOperation.arity === 1) {
+			// no need to push in stack, just calculate right now
+			const operand = Number(this.inputElement.value);
+			result = currOperation?.action(operand) ?? NaN;
+			// this.addToHistoryList(`${currOperation.representation}(${this.inputElement.value})=${result}`);
+			this.addToHistoryList({ operation: currOperation, operands: [operand], result });
 			this.inputElement.value = String(result);
 		} else if ((currOperation?.arity ?? 0) > 1) {
 			this.stack.push(result);
@@ -360,23 +373,47 @@ const calculator: CalculatorInterface = {
 			this.digitHandler(input as string);
 		}
 	},
-	addToHistoryList(arg, initialization = false) {
-		const newLi = document.createElement('li');
-		newLi.innerText = arg;
-		this.historyList.appendChild(newLi);
-		newLi.addEventListener('click', (ev: MouseEvent) => {
-			[, this.inputElement.value] = arg.split('=');
+	addToHistoryList({
+		operation,
+		operands,
+		result,
+		initialization = false,
+	}: HistoryElementAdding) {
+		/* 		const newLi = document.createElement('li');
+				newLi.innerText = arg;
+				this.historyList.appendChild(newLi);
+		 */
+		const newHistoryRow = document.createElement('tr');
+		const newHistoryTd1 = document.createElement('td');
+		newHistoryTd1.innerText = operation.representation;
+		const newHistoryTd2 = document.createElement('td');
+		newHistoryTd2.innerText = String(operands[0]);
+		const newHistoryTd3 = document.createElement('td');
+		newHistoryTd3.innerText = String(operands[1]);
+		const newHistoryTd4 = document.createElement('td');
+		newHistoryTd4.innerText = '=';
+		const newHistoryTd5 = document.createElement('td');
+		newHistoryTd5.innerText = String(result);
+		newHistoryTd1.addEventListener('click', (ev: MouseEvent) => {
+			[, this.inputElement.value] = String(result);
 		});
+		newHistoryRow.appendChild(newHistoryTd1);
+		newHistoryRow.appendChild(newHistoryTd2);
+		newHistoryRow.appendChild(newHistoryTd3);
+		newHistoryRow.appendChild(newHistoryTd4);
+		newHistoryRow.appendChild(newHistoryTd5);
+		this.historyTable.appendChild(newHistoryRow);
+
 		if (initialization) return;
-		this.historyListData.push(arg);
+		this.historyListData.push({ operation, operands, result });
 		this.saveHistoryList();
 	},
 	getHistoryList() {
 		const historyFromCookie = getCookie('historyList');
 		if (historyFromCookie) {
 			this.historyListData = JSON.parse(historyFromCookie);
-			this.historyListData.forEach((el: string) => {
-				this.addToHistoryList.call(this, el, true);
+			this.historyListData.forEach((el: HistoryElement) => {
+				this.addToHistoryList.call(this, { ...el, initialization: true });
 			});
 		}
 	},

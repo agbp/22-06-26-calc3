@@ -14,7 +14,6 @@ $padding: 6px;
 	padding: 0;
 	box-sizing: border-box;
 	border-radius: 5px;
-	color: red;
 }
 
 body {
@@ -32,6 +31,10 @@ body {
 	overflow: auto;
 }
 
+.header {
+	color: #888;
+}
+
 .calculator {
 
 	display: flex;
@@ -44,7 +47,7 @@ body {
 	box-shadow: 5px 5px 10px #000;
 	overflow: auto;
 
-	input {
+	.calc_input {
 		flex: 1;
 		margin: 5px;
 		height: 200px;
@@ -125,6 +128,21 @@ body {
 
 		li {
 			color: #080;
+			cursor: pointer;
+		}
+	}
+
+	.calc_history_table {
+		width: 100%;
+		color: #080;
+		text-align: center;
+		border: 1px solid #080;
+		border-radius: 0;
+		border-collapse: collapse;
+
+		td {
+			border: 1px solid #080;
+			border-radius: 0;
 			cursor: pointer;
 		}
 	}
