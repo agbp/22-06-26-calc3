@@ -256,6 +256,9 @@ const calculator: CalculatorInterface = {
 				case '%':
 					this.addDigitOrOperation(OperationId.percent);
 					break;
+				case 'Backspace':
+					this.addDigitOrOperation('\b');
+					break;
 				default:
 					switch (event.code) {
 						case 'KeyC':
@@ -320,7 +323,6 @@ const calculator: CalculatorInterface = {
 			if (operation) {
 				result = operation?.action.apply(null, operands) ?? NaN;
 				this.inputElement.value = String(result);
-				// this.addToHistoryList(`${operands[0]}${operation?.representation}${operands[1]}=${this.inputElement.value}`);
 				this.addToHistoryList({ operation, operands, result });
 			}
 		} else { // there is no data in stack to calculate
@@ -330,7 +332,6 @@ const calculator: CalculatorInterface = {
 			// no need to push in stack, just calculate right now
 			const operand = Number(this.inputElement.value);
 			result = currOperation?.action(operand) ?? NaN;
-			// this.addToHistoryList(`${currOperation.representation}(${this.inputElement.value})=${result}`);
 			this.addToHistoryList({ operation: currOperation, operands: [operand], result });
 			this.inputElement.value = String(result);
 		} else if ((currOperation?.arity ?? 0) > 1) {
@@ -386,17 +387,32 @@ const calculator: CalculatorInterface = {
 		const newHistoryRow = document.createElement('tr');
 		const newHistoryTd1 = document.createElement('td');
 		newHistoryTd1.innerText = operation.representation;
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
+		newHistoryTd1.addEventListener('click', (ev: MouseEvent) => {
+			this.operationHandler(operation.id);
+		});
 		const newHistoryTd2 = document.createElement('td');
 		newHistoryTd2.innerText = String(operands[0]);
+		newHistoryTd2.addEventListener('click', (ev: MouseEvent) => {
+			this.inputElement.value = (ev.target as HTMLTableCellElement).innerText;
+		});
 		const newHistoryTd3 = document.createElement('td');
-		newHistoryTd3.innerText = String(operands[1]);
+		if (operands[1]) {
+			newHistoryTd3.innerText = String(operands[1]);
+			newHistoryTd3.addEventListener('click', (ev: MouseEvent) => {
+				this.inputElement.value = (ev.target as HTMLTableCellElement).innerText;
+			});
+		}
 		const newHistoryTd4 = document.createElement('td');
 		newHistoryTd4.innerText = '=';
-		const newHistoryTd5 = document.createElement('td');
-		newHistoryTd5.innerText = String(result);
-		newHistoryTd1.addEventListener('click', (ev: MouseEvent) => {
-			[, this.inputElement.value] = String(result);
+		newHistoryTd4.addEventListener('click', (ev: MouseEvent) => {
+			this.operationHandler(OperationId.equal);
 		});
+		const newHistoryTd5 = document.createElement('td');
+		newHistoryTd5.addEventListener('click', (ev: MouseEvent) => {
+			this.inputElement.value = (ev.target as HTMLTableCellElement).innerText;
+		});
+		newHistoryTd5.innerText = String(result);
 		newHistoryRow.appendChild(newHistoryTd1);
 		newHistoryRow.appendChild(newHistoryTd2);
 		newHistoryRow.appendChild(newHistoryTd3);

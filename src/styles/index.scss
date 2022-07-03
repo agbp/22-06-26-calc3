@@ -139,11 +139,18 @@ body {
 		border: 1px solid #080;
 		border-radius: 0;
 		border-collapse: collapse;
+		font-family: 'lcdmonoultra';
 
 		td {
-			border: 1px solid #080;
+			border: 1px solid #333;
 			border-radius: 0;
 			cursor: pointer;
+			padding: 0 5px;
+			font-family: 'lcdmonoultra';
+		}
+
+		td:hover {
+			background-color: #333;
 		}
 	}
 
@@ -188,7 +195,7 @@ body {
 			flex: 1;
 			margin: 2px;
 			background: linear-gradient(to bottom right, #333, #555), radial-gradient(#777, #888);
-
+			border: solid 1px black;
 			padding: 5px;
 			box-shadow: 0 0 10px rgba(0, 0, 0, 0.5), inset -1px -1px 2px #000, inset 1px 1px 1px #aaa;
 			// border: solid 1px grey;
