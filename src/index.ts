@@ -1,4 +1,5 @@
 import './styles/index.scss';
+import { getCookie } from './utils';
 
 enum OperationId {
 	plus = 10,
@@ -42,31 +43,23 @@ interface CalculatorInterface {
 	waiting4NewNumber: boolean;
 	historyOpened: boolean;
 	scientificOpened: boolean;
-	clearInput: () => void;
-	changeHistoryDisplay: () => void;
-	changeScientificDisplay: () => void;
 	addActionToButtonClick: (buttonId: string, action: () => void) => void;
 	addInputToButtonClick: (
 		buttonId: string,
 		input: string | OperationId
 	) => void;
 	addEventsToDigitButtons: () => void;
-	addDigitOrOperation: (digit: string | OperationId) => void;
 	initOperations: () => void;
+	init: () => void;
+	changeHistoryDisplay: () => void;
+	changeScientificDisplay: () => void;
+	clearInput: () => void;
+	operationHandler: (input: OperationId) => void,
+	digitHandler: (input: string) => void,
+	addDigitOrOperation: (digit: string | OperationId) => void;
 	addToHistoryList: (arg: string, initialization?: boolean) => void;
 	getHistoryList: () => void;
 	saveHistoryList: () => void;
-	init: () => void;
-}
-
-// возвращает куки с указанным name,
-// или undefined, если ничего не найдено
-function getCookie(name: string) {
-	const matches = document.cookie.match(
-		new RegExp(`(?:^|; )${name.replace(/([.$?*|{}()[\]\\/+^])/g, '\\$1')}=([^;]*)`),
-		// new RegExp(`(?:^|; )${name.replace(/([\.$?*|{}\(\)\[\]\\\/\+^])/g, '\\$1')}=([^;]*)`),
-	);
-	return matches ? decodeURIComponent(matches[1]) : undefined;
 }
 
 const calculator: CalculatorInterface = {
@@ -80,198 +73,6 @@ const calculator: CalculatorInterface = {
 	historyOpened: false,
 	scientificOpened: false,
 	operations: [],
-	clearInput() {
-		this.inputElement.value = '0';
-		this.stack.length = 0;
-	},
-	getHistoryList() {
-		const historyFromCookie = getCookie('historyList');
-		if (historyFromCookie) {
-			this.historyListData = JSON.parse(historyFromCookie);
-			this.historyListData.forEach((el: string) => {
-				this.addToHistoryList.call(this, el, true);
-			});
-		}
-	},
-	saveHistoryList() {
-		// console.debug(JSON.stringify(this.historyListData));
-		document.cookie = `historyList=${JSON.stringify(this.historyListData)}`;
-	},
-	addToHistoryList(arg, initialization = false) {
-		const newLi = document.createElement('li');
-		newLi.innerText = arg;
-		this.historyList.appendChild(newLi);
-		if (initialization) return;
-		this.historyListData.push(arg);
-		this.saveHistoryList();
-	},
-	addDigitOrOperation(input: string | OperationId) {
-		if (input in OperationId) {
-			// is operation button pressed ?
-			const currOperation = this.operations.find(
-				(el: OperationInterface) => el.id === input,
-			);
-			let result = NaN;
-			if (this.stack.length) {
-				// there is data to be calculated
-				const opId = this.stack.pop() as OperationId;
-				const operation = this.operations.find(
-					(el: OperationInterface) => el.id === opId,
-				);
-				const operands: number[] = [];
-				for (let i = 1; i < (operation?.arity ?? 0); i += 1) {
-					operands.push(this.stack.pop() as number);
-				}
-				operands.push(Number(this.inputElement.value));
-				result = operation?.action.apply(null, operands) ?? NaN;
-				this.inputElement.value = String(result);
-				this.addToHistoryList(`${operands[0]}${operation?.representation}${operands[1]}=${this.inputElement.value}`);
-			} else {
-				result = Number(this.inputElement.value);
-			}
-			if (currOperation?.arity === 1) {
-				// no need to push in stack, just calculate right now
-				result = currOperation?.action(Number(this.inputElement.value)) ?? NaN;
-				this.addToHistoryList(`${currOperation.representation}(${this.inputElement.value})=${result}`);
-				this.inputElement.value = String(result);
-			} else if ((currOperation?.arity ?? 0) > 1) {
-				this.stack.push(result);
-				this.stack.push(input as OperationId);
-			}
-			this.waiting4NewNumber = true;
-		} else {
-			// not operation button preesed
-			if (this.waiting4NewNumber && input !== '\b') {
-				// start of input a new number
-				this.inputElement.value = '';
-				this.waiting4NewNumber = false;
-			}
-			if (input === '\b') {
-				// backspace button pressed
-				this.inputElement.value = this.inputElement.value.slice(0, -1);
-				if (this.inputElement.value === '') this.inputElement.value = '0';
-				this.waiting4NewNumber = false;
-				return;
-			}
-			if (input === '.') {
-				// decimal point button pressed
-				if (this.inputElement.value.indexOf('.') !== -1) return;
-				if (Number(this.inputElement.value) === 0) { this.inputElement.value = '0'; }
-			} else {
-				if (input === '0') if (this.inputElement.value === '0') return; // ignore input of 0 if current string value is 0
-				if (
-					this.inputElement.value.indexOf('.') === -1
-					&& Number(this.inputElement.value) === 0
-				) { this.inputElement.value = ''; } // there is no decimal point and last input is equal to 0, replace last input with new
-			}
-			this.inputElement.value += input;
-			// add next digit to current number input
-		}
-	},
-	changeHistoryDisplay() {
-		this.historyOpened = !this.historyOpened;
-		this.historyDiv.classList.toggle('hidden');
-		this.historyDiv.classList.toggle('shown');
-		document.cookie = `historyOpened=${this.historyOpened}`;
-	},
-	changeScientificDisplay() {
-		this.scientificOpened = !this.scientificOpened;
-		this.scientificDiv.classList.toggle('hidden');
-		this.scientificDiv.classList.toggle('shown');
-		document.cookie = `scientificOpened=${this.scientificOpened}`;
-	},
-	init() {
-		const historyBtn = document.getElementById(
-			'btn_history',
-		) as HTMLButtonElement;
-		historyBtn.addEventListener('click', this.changeHistoryDisplay.bind(this));
-		const scientificBtn = document.getElementById(
-			'btn_scientific',
-		) as HTMLButtonElement;
-		scientificBtn.addEventListener(
-			'click',
-			this.changeScientificDisplay.bind(this),
-		);
-		this.initOperations();
-		this.clearInput();
-		this.inputElement.addEventListener('input', (event: Event) => {
-			const target = event.target as HTMLInputElement;
-			// console.log('value = ', target.value);
-			if (target.value === '') {
-				this.clearInput();
-			}
-		});
-		this.addActionToButtonClick('btn_clear', this.clearInput.bind(this));
-		this.addEventsToDigitButtons();
-		this.addInputToButtonClick('btn_pt', '.');
-		this.addInputToButtonClick('btn_backspace', '\b');
-		document.addEventListener('keydown', (event: KeyboardEvent) => {
-			// console.log('key pressed : ', event.key, ' key code = ', event.keyCode);
-			switch (event.key) {
-				case '.':
-				case '0':
-				case '1':
-				case '2':
-				case '3':
-				case '4':
-				case '5':
-				case '6':
-				case '7':
-				case '8':
-				case '9':
-					this.addDigitOrOperation(event.key);
-					break;
-				case '+':
-					this.addDigitOrOperation(OperationId.plus);
-					break;
-				case '-':
-					this.addDigitOrOperation(OperationId.minus);
-					break;
-				case '*':
-					this.addDigitOrOperation(OperationId.multiply);
-					break;
-				case '/':
-					this.addDigitOrOperation(OperationId.divide);
-					break;
-				case '=':
-					this.addDigitOrOperation(OperationId.equal);
-					break;
-				case '%':
-					this.addDigitOrOperation(OperationId.percent);
-					break;
-				default:
-					switch (event.keyCode) {
-						case 67:
-							this.clearInput();
-							break;
-						case 8:
-							this.addDigitOrOperation('\b');
-							break;
-						case 72:
-							this.changeHistoryDisplay();
-							break;
-						case 83:
-							this.changeScientificDisplay();
-							break;
-						case 38: // ArrowUp
-						case 40: // ArrowDown
-						default:
-					}
-			}
-		});
-		const historyOpenedFromCookie = getCookie('historyOpened');
-		if (historyOpenedFromCookie !== undefined
-			&& String(this.historyOpened) !== historyOpenedFromCookie) {
-			this.changeHistoryDisplay();
-		}
-		const scientificOpenedFromCookie = getCookie('scientificOpened');
-		if (scientificOpenedFromCookie !== undefined
-			&& String(this.scientificOpened) !== scientificOpenedFromCookie) {
-			this.changeScientificDisplay();
-		}
-
-		this.getHistoryList();
-	},
 	addActionToButtonClick(buttonId, action) {
 		const btn = document.getElementById(buttonId) as HTMLButtonElement;
 		btn.addEventListener('click', action);
@@ -390,7 +191,199 @@ const calculator: CalculatorInterface = {
 			this.addInputToButtonClick(el.bittonId, el.id);
 		});
 	},
+	init() {
+		const historyBtn = document.getElementById(
+			'btn_history',
+		) as HTMLButtonElement;
+		historyBtn.addEventListener('click', this.changeHistoryDisplay.bind(this));
+		const scientificBtn = document.getElementById(
+			'btn_scientific',
+		) as HTMLButtonElement;
+		scientificBtn.addEventListener(
+			'click',
+			this.changeScientificDisplay.bind(this),
+		);
+		this.initOperations();
+		this.clearInput();
+		this.inputElement.addEventListener('input', (event: Event) => {
+			const target = event.target as HTMLInputElement;
+			if (target.value === '') {
+				this.clearInput();
+			}
+		});
+		this.addActionToButtonClick('btn_clear', this.clearInput.bind(this));
+		this.addEventsToDigitButtons();
+		this.addInputToButtonClick('btn_pt', '.');
+		this.addInputToButtonClick('btn_backspace', '\b');
+		document.addEventListener('keydown', (event: KeyboardEvent) => {
+			// console.log('key pressed : ', event.key, ' key code = ', event.keyCode);
+			switch (event.key) {
+				case '.':
+				case '0':
+				case '1':
+				case '2':
+				case '3':
+				case '4':
+				case '5':
+				case '6':
+				case '7':
+				case '8':
+				case '9':
+					this.addDigitOrOperation(event.key);
+					break;
+				case '+':
+					this.addDigitOrOperation(OperationId.plus);
+					break;
+				case '-':
+					this.addDigitOrOperation(OperationId.minus);
+					break;
+				case '*':
+					this.addDigitOrOperation(OperationId.multiply);
+					break;
+				case '/':
+					this.addDigitOrOperation(OperationId.divide);
+					break;
+				case '=':
+					this.addDigitOrOperation(OperationId.equal);
+					break;
+				case '%':
+					this.addDigitOrOperation(OperationId.percent);
+					break;
+				default:
+					switch (event.code) {
+						case 'KeyC':
+							this.clearInput();
+							break;
+						case 'KeyH':
+							this.changeHistoryDisplay();
+							break;
+						case 'KeyS':
+							this.changeScientificDisplay();
+							break;
+						case 'ArrowUp': // ArrowUp
+						case 'ArrowDown': // ArrowDown
+						default:
+					}
+			}
+		});
+		const historyOpenedFromCookie = getCookie('historyOpened');
+		if (historyOpenedFromCookie !== undefined
+			&& String(this.historyOpened) !== historyOpenedFromCookie) {
+			this.changeHistoryDisplay();
+		}
+		const scientificOpenedFromCookie = getCookie('scientificOpened');
+		if (scientificOpenedFromCookie !== undefined
+			&& String(this.scientificOpened) !== scientificOpenedFromCookie) {
+			this.changeScientificDisplay();
+		}
+
+		this.getHistoryList();
+	},
+	changeHistoryDisplay() {
+		this.historyOpened = !this.historyOpened;
+		this.historyDiv.classList.toggle('hidden');
+		this.historyDiv.classList.toggle('shown');
+		document.cookie = `historyOpened=${this.historyOpened}`;
+	},
+	changeScientificDisplay() {
+		this.scientificOpened = !this.scientificOpened;
+		this.scientificDiv.classList.toggle('hidden');
+		this.scientificDiv.classList.toggle('shown');
+		document.cookie = `scientificOpened=${this.scientificOpened}`;
+	},
+	clearInput() {
+		this.inputElement.value = '0';
+		this.stack.length = 0;
+	},
+	operationHandler(input: OperationId) {
+		const currOperation = this.operations.find(
+			(el: OperationInterface) => el.id === input,
+		);
+		let result = NaN;
+		if (this.stack.length) { // there is data in stack to be calculated
+			const opId = this.stack.pop() as OperationId;
+			const operation = this.operations.find(
+				(el: OperationInterface) => el.id === opId,
+			);
+			const operands: number[] = [];
+			for (let i = 1; i < (operation?.arity ?? 0); i += 1) {
+				operands.push(this.stack.pop() as number);
+			}
+			operands.push(Number(this.inputElement.value));
+			result = operation?.action.apply(null, operands) ?? NaN;
+			this.inputElement.value = String(result);
+			this.addToHistoryList(`${operands[0]}${operation?.representation}${operands[1]}=${this.inputElement.value}`);
+		} else { // there is no data in stack to calculate
+			result = Number(this.inputElement.value);
+		}
+		if (currOperation?.arity === 1) { // no need to push in stack, just calculate right now
+			result = currOperation?.action(Number(this.inputElement.value)) ?? NaN;
+			this.addToHistoryList(`${currOperation.representation}(${this.inputElement.value})=${result}`);
+			this.inputElement.value = String(result);
+		} else if ((currOperation?.arity ?? 0) > 1) {
+			this.stack.push(result);
+			this.stack.push(input as OperationId);
+		}
+		this.waiting4NewNumber = true;
+	},
+	digitHandler(input: string) {
+		if (this.waiting4NewNumber && input !== '\b') {
+			// start of input a new number
+			this.inputElement.value = '';
+			this.waiting4NewNumber = false;
+		}
+		if (input === '\b') {
+			// backspace button pressed
+			this.inputElement.value = this.inputElement.value.slice(0, -1);
+			if (this.inputElement.value === '') this.inputElement.value = '0';
+			this.waiting4NewNumber = false;
+			return;
+		}
+		if (input === '.') {
+			// decimal point button pressed
+			if (this.inputElement.value.indexOf('.') !== -1) return;
+			if (Number(this.inputElement.value) === 0) { this.inputElement.value = '0'; }
+		} else {
+			if (input === '0') if (this.inputElement.value === '0') return; // ignore input of 0 if current string value is 0
+			if (
+				this.inputElement.value.indexOf('.') === -1
+				&& Number(this.inputElement.value) === 0
+			) { this.inputElement.value = ''; } // there is no decimal point and last input is equal to 0, replace last input with new
+		}
+		this.inputElement.value += input;
+		// add next digit to current number input
+	},
+	addDigitOrOperation(input: string | OperationId) {
+		if (input in OperationId) { // is operation button pressed ?
+			this.operationHandler(input as OperationId);
+		} else { // not operation button preesed
+			this.digitHandler(input as string);
+		}
+	},
+	addToHistoryList(arg, initialization = false) {
+		const newLi = document.createElement('li');
+		newLi.innerText = arg;
+		this.historyList.appendChild(newLi);
+		newLi.addEventListener('click', (ev: MouseEvent) => {
+			[, this.inputElement.value] = arg.split('=');
+		});
+		if (initialization) return;
+		this.historyListData.push(arg);
+		this.saveHistoryList();
+	},
+	getHistoryList() {
+		const historyFromCookie = getCookie('historyList');
+		if (historyFromCookie) {
+			this.historyListData = JSON.parse(historyFromCookie);
+			this.historyListData.forEach((el: string) => {
+				this.addToHistoryList.call(this, el, true);
+			});
+		}
+	},
+	saveHistoryList() {
+		// console.debug(JSON.stringify(this.historyListData));
+		document.cookie = `historyList=${JSON.stringify(this.historyListData)}`;
+	},
 };
 
 calculator.init();
-

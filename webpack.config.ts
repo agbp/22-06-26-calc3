@@ -58,6 +58,9 @@ const config: webpack.Configuration = {
 		port: 9000,
 		open: true,
 	},
+	resolve: {
+		extensions: ['.ts', '.js'],
+	},
 };
 
 export default config;
