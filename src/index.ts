@@ -1,4 +1,5 @@
 import './styles/index.scss';
+import './styles/modals.scss';
 import { getCookie } from './utils';
 
 enum OperationId {
@@ -27,9 +28,8 @@ interface OperationInterface {
 }
 
 interface HistoryElement {
-	operation: OperationInterface,
+	opId: OperationId,
 	operands: number[],
-	result: number,
 }
 
 interface HistoryElementAdding extends HistoryElement {
@@ -48,6 +48,7 @@ interface CalculatorInterface {
 	waiting4NewNumber: boolean;
 	historyOpened: boolean;
 	scientificOpened: boolean;
+	prevOperation: HistoryElement | undefined;
 	addActionToButtonClick: (buttonId: string, action: () => void) => void;
 	addInputToButtonClick: (
 		buttonId: string,
@@ -63,6 +64,7 @@ interface CalculatorInterface {
 	digitHandler: (input: string) => void,
 	addDigitOrOperation: (digit: string | OperationId) => void;
 	// addToHistoryList: (arg: string, initialization?: boolean) => void;
+	compareOperands: (operands1: number[], operands2: number[]) => boolean;
 	addToHistoryList: (data: HistoryElementAdding) => void;
 	getHistoryList: () => void;
 	saveHistoryList: () => void;
@@ -80,6 +82,7 @@ const calculator: CalculatorInterface = {
 	historyOpened: false,
 	scientificOpened: false,
 	operations: [],
+	prevOperation: undefined,
 	addActionToButtonClick(buttonId, action) {
 		const btn = document.getElementById(buttonId) as HTMLButtonElement;
 		btn.addEventListener('click', action);
@@ -323,7 +326,7 @@ const calculator: CalculatorInterface = {
 			if (operation) {
 				result = operation?.action.apply(null, operands) ?? NaN;
 				this.inputElement.value = String(result);
-				this.addToHistoryList({ operation, operands, result });
+				this.addToHistoryList({ opId: operation.id, operands });
 			}
 		} else { // there is no data in stack to calculate
 			result = Number(this.inputElement.value);
@@ -332,7 +335,10 @@ const calculator: CalculatorInterface = {
 			// no need to push in stack, just calculate right now
 			const operand = Number(this.inputElement.value);
 			result = currOperation?.action(operand) ?? NaN;
-			this.addToHistoryList({ operation: currOperation, operands: [operand], result });
+			this.addToHistoryList({
+				opId: currOperation.id,
+				operands: [operand],
+			});
 			this.inputElement.value = String(result);
 		} else if ((currOperation?.arity ?? 0) > 1) {
 			this.stack.push(result);
@@ -348,8 +354,12 @@ const calculator: CalculatorInterface = {
 		}
 		if (input === '\b') {
 			// backspace button pressed
-			this.inputElement.value = this.inputElement.value.slice(0, -1);
-			if (this.inputElement.value === '') this.inputElement.value = '0';
+			if (this.inputElement.value === 'Infinity' || this.inputElement.value === 'NaN') {
+				this.inputElement.value = '0';
+			} else {
+				this.inputElement.value = this.inputElement.value.slice(0, -1);
+				if (this.inputElement.value === '') this.inputElement.value = '0';
+			}
 			this.waiting4NewNumber = false;
 			return;
 		}
@@ -374,54 +384,67 @@ const calculator: CalculatorInterface = {
 			this.digitHandler(input as string);
 		}
 	},
+	compareOperands(operands1: number[], operands2: number[]) {
+		if (operands1.length !== operands2.length) return false;
+		for (let i = 0; i < operands1.length; i += 1) {
+			if (operands1[i] !== operands2[i]) return false;
+		}
+		return true;
+	},
 	addToHistoryList({
-		operation,
+		opId: operationId,
 		operands,
-		result,
 		initialization = false,
 	}: HistoryElementAdding) {
-		/* 		const newLi = document.createElement('li');
-				newLi.innerText = arg;
-				this.historyList.appendChild(newLi);
-		 */
+		if (this.prevOperation
+			&& this.prevOperation.opId === operationId
+			&& this.compareOperands(this.prevOperation.operands, operands)) {
+			return;
+		}
+		this.prevOperation = { opId: operationId, operands };
 		const newHistoryRow = document.createElement('tr');
-		const newHistoryTd1 = document.createElement('td');
-		newHistoryTd1.innerText = operation.representation;
+		const newHistoryTdOperation = document.createElement('td');
+		const operation = this.operations.find((el) => el.id === operationId);
+		if (!operation) return;
+		newHistoryTdOperation.innerText = operation.representation;
 		// eslint-disable-next-line @typescript-eslint/no-unused-vars
-		newHistoryTd1.addEventListener('click', (ev: MouseEvent) => {
-			this.operationHandler(operation.id);
+		newHistoryTdOperation.addEventListener('click', (ev: MouseEvent) => {
+			this.operationHandler(operationId);
 		});
-		const newHistoryTd2 = document.createElement('td');
-		newHistoryTd2.innerText = String(operands[0]);
-		newHistoryTd2.addEventListener('click', (ev: MouseEvent) => {
-			this.inputElement.value = (ev.target as HTMLTableCellElement).innerText;
-		});
-		const newHistoryTd3 = document.createElement('td');
+		const newHistoryTdOperand0 = document.createElement('td');
+		const newHistoryTdOperand1 = document.createElement('td');
 		if (operands[1]) {
-			newHistoryTd3.innerText = String(operands[1]);
-			newHistoryTd3.addEventListener('click', (ev: MouseEvent) => {
+			newHistoryTdOperand0.innerText = String(operands[0]);
+			newHistoryTdOperand0.addEventListener('click', (ev: MouseEvent) => {
 				this.inputElement.value = (ev.target as HTMLTableCellElement).innerText;
 			});
+			newHistoryTdOperand1.innerText = String(operands[1]);
+		} else {
+			newHistoryTdOperand1.innerText = String(operands[0]);
 		}
-		const newHistoryTd4 = document.createElement('td');
-		newHistoryTd4.innerText = '=';
-		newHistoryTd4.addEventListener('click', (ev: MouseEvent) => {
-			this.operationHandler(OperationId.equal);
-		});
-		const newHistoryTd5 = document.createElement('td');
-		newHistoryTd5.addEventListener('click', (ev: MouseEvent) => {
+		newHistoryTdOperand1.addEventListener('click', (ev: MouseEvent) => {
 			this.inputElement.value = (ev.target as HTMLTableCellElement).innerText;
 		});
-		newHistoryTd5.innerText = String(result);
-		newHistoryRow.appendChild(newHistoryTd1);
-		newHistoryRow.appendChild(newHistoryTd2);
-		newHistoryRow.appendChild(newHistoryTd3);
-		newHistoryRow.appendChild(newHistoryTd4);
-		newHistoryRow.appendChild(newHistoryTd5);
+		const newHistoryTdEqualSign = document.createElement('td');
+		newHistoryTdEqualSign.innerText = '=';
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
+		newHistoryTdEqualSign.addEventListener('click', (ev: MouseEvent) => {
+			this.operationHandler(OperationId.equal);
+		});
+		const newHistoryTdResult = document.createElement('td');
+		newHistoryTdResult.addEventListener('click', (ev: MouseEvent) => {
+			this.inputElement.value = (ev.target as HTMLTableCellElement).innerText;
+		});
+		newHistoryTdResult.innerText = String(operation.action(...operands));
+		newHistoryRow.appendChild(newHistoryTdOperand0);
+		newHistoryRow.appendChild(newHistoryTdOperation);
+		newHistoryRow.appendChild(newHistoryTdOperand1);
+		newHistoryRow.appendChild(newHistoryTdEqualSign);
+		newHistoryRow.appendChild(newHistoryTdResult);
 		this.historyTable.appendChild(newHistoryRow);
 
 		if (initialization) return;
-		this.historyListData.push({ operation, operands, result });
+		this.historyListData.push({ opId: operationId, operands });
 		this.saveHistoryList();
 	},
 	getHistoryList() {
@@ -434,9 +457,18 @@ const calculator: CalculatorInterface = {
 		}
 	},
 	saveHistoryList() {
-		// console.debug(JSON.stringify(this.historyListData));
-		document.cookie = `historyList=${JSON.stringify(this.historyListData)}`;
+		if (this.historyListData.length) {
+			document.cookie = `historyList=${JSON.stringify(this.historyListData)}`;
+		}
 	},
 };
 
 calculator.init();
+
+function closeModal() {
+	const modal = document.getElementById('modal-parent') as HTMLDivElement;
+	modal.classList.add('hidden');
+}
+
+const closeModalCross = document.getElementById('close-modal-cross') as HTMLDivElement;
+closeModalCross.addEventListener('click', closeModal);
