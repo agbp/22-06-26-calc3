@@ -14,7 +14,6 @@
 		z-index: 1000;
 		height: auto;
 		overflow: hidden;
-		width: 60%;
 		max-width: 90%;
 		border-radius: 5px;
 		background: rgba(255, 255, 255, 1);
@@ -22,6 +21,7 @@
 		position: relative;
 		display: flex;
 		flex-direction: column;
+		transition: .3s cubic-bezier(0.03, 0.65, 0.95, 0.44);
 	}
 
 	.close {

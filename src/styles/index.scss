@@ -157,7 +157,9 @@ input:focus {
 
 	td:active {
 		color: yellow;
-		transition: 0s;
+		transition: .1s;
+		transform: scale(2);
+		background-color: rgba(0, 0, 0, 0);
 	}
 }
 

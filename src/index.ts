@@ -1,3 +1,4 @@
+import { showModal } from './modals';
 import './styles/index.scss';
 import './styles/modals.scss';
 import { getCookie } from './utils';
@@ -202,6 +203,10 @@ const calculator: CalculatorInterface = {
 		});
 	},
 	init() {
+		const settingsBtn = document.getElementById(
+			'btn_settings',
+		) as HTMLButtonElement;
+		settingsBtn.addEventListener('click', () => showModal('header', 'context'));
 		const historyBtn = document.getElementById(
 			'btn_history',
 		) as HTMLButtonElement;
@@ -464,11 +469,3 @@ const calculator: CalculatorInterface = {
 };
 
 calculator.init();
-
-function closeModal() {
-	const modal = document.getElementById('modal-parent') as HTMLDivElement;
-	modal.classList.add('hidden');
-}
-
-const closeModalCross = document.getElementById('close-modal-cross') as HTMLDivElement;
-closeModalCross.addEventListener('click', closeModal);
