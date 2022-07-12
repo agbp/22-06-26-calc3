@@ -1,4 +1,4 @@
-import { showModal } from './modals';
+import { showContextMenu, showModal } from './modals';
 import './styles/index.scss';
 import './styles/modals.scss';
 import { getCookie } from './utils';
@@ -28,7 +28,8 @@ interface OperationInterface {
 	action: (...args: number[]) => number;
 }
 
-interface HistoryElement {
+export interface HistoryElement {
+	date: Date,
 	opId: OperationId,
 	operands: number[],
 }
@@ -206,7 +207,7 @@ const calculator: CalculatorInterface = {
 		const settingsBtn = document.getElementById(
 			'btn_settings',
 		) as HTMLButtonElement;
-		settingsBtn.addEventListener('click', () => showModal('header', 'context'));
+		settingsBtn.addEventListener('click', () => showModal('Settings', 'no settings yet'));
 		const historyBtn = document.getElementById(
 			'btn_history',
 		) as HTMLButtonElement;
@@ -296,6 +297,10 @@ const calculator: CalculatorInterface = {
 		}
 
 		this.getHistoryList();
+
+		this.historyTable.addEventListener('contextmenu', (ev) => {
+			showContextMenu(ev, this.historyListData);
+		});
 	},
 	changeHistoryDisplay() {
 		this.historyOpened = !this.historyOpened;
@@ -331,7 +336,7 @@ const calculator: CalculatorInterface = {
 			if (operation) {
 				result = operation?.action.apply(null, operands) ?? NaN;
 				this.inputElement.value = String(result);
-				this.addToHistoryList({ opId: operation.id, operands });
+				this.addToHistoryList({ opId: operation.id, operands, date: new Date() });
 			}
 		} else { // there is no data in stack to calculate
 			result = Number(this.inputElement.value);
@@ -343,6 +348,7 @@ const calculator: CalculatorInterface = {
 			this.addToHistoryList({
 				opId: currOperation.id,
 				operands: [operand],
+				date: new Date(),
 			});
 			this.inputElement.value = String(result);
 		} else if ((currOperation?.arity ?? 0) > 1) {
@@ -390,6 +396,7 @@ const calculator: CalculatorInterface = {
 		}
 	},
 	compareOperands(operands1: number[], operands2: number[]) {
+		if (!operands1 || !operands2) return false;
 		if (operands1.length !== operands2.length) return false;
 		for (let i = 0; i < operands1.length; i += 1) {
 			if (operands1[i] !== operands2[i]) return false;
@@ -400,14 +407,18 @@ const calculator: CalculatorInterface = {
 		opId: operationId,
 		operands,
 		initialization = false,
+		date,
 	}: HistoryElementAdding) {
 		if (this.prevOperation
 			&& this.prevOperation.opId === operationId
 			&& this.compareOperands(this.prevOperation.operands, operands)) {
 			return;
 		}
-		this.prevOperation = { opId: operationId, operands };
+		this.prevOperation = { opId: operationId, operands, date: new Date() };
 		const newHistoryRow = document.createElement('tr');
+		const newHistoryDate = document.createElement('td');
+		newHistoryDate.classList.add('history-date');
+		newHistoryDate.innerText = JSON.stringify(date);
 		const newHistoryTdOperation = document.createElement('td');
 		const operation = this.operations.find((el) => el.id === operationId);
 		if (!operation) return;
@@ -441,6 +452,7 @@ const calculator: CalculatorInterface = {
 			this.inputElement.value = (ev.target as HTMLTableCellElement).innerText;
 		});
 		newHistoryTdResult.innerText = String(operation.action(...operands));
+		newHistoryRow.appendChild(newHistoryDate);
 		newHistoryRow.appendChild(newHistoryTdOperand0);
 		newHistoryRow.appendChild(newHistoryTdOperation);
 		newHistoryRow.appendChild(newHistoryTdOperand1);
@@ -448,16 +460,16 @@ const calculator: CalculatorInterface = {
 		newHistoryRow.appendChild(newHistoryTdResult);
 		this.historyTable.appendChild(newHistoryRow);
 
+		this.historyListData.push({ opId: operationId, operands, date });
 		if (initialization) return;
-		this.historyListData.push({ opId: operationId, operands });
 		this.saveHistoryList();
 	},
 	getHistoryList() {
 		const historyFromCookie = getCookie('historyList');
 		if (historyFromCookie) {
-			this.historyListData = JSON.parse(historyFromCookie);
-			this.historyListData.forEach((el: HistoryElement) => {
-				this.addToHistoryList.call(this, { ...el, initialization: true });
+			const historyListData = JSON.parse(historyFromCookie);
+			historyListData.forEach((el: HistoryElement) => {
+				this.addToHistoryList.call(this, { ...el, date: new Date(el.date), initialization: true });
 			});
 		}
 	},

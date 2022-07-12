@@ -12,7 +12,7 @@ const config: webpack.Configuration = {
 	mode: isProd ? 'production' : 'development',
 	devtool: isProd ? undefined : 'inline-source-map',
 	output: {
-		filename: isProd ? 'calc/js/main.js' : 'js/main.js',
+		filename: isProd ? 'calc/js/bundle.js' : 'js/bundle.js',
 		path: path.resolve(__dirname, outputDirName),
 		assetModuleFilename: isProd ? 'calc/assets/[name].[ext]' : 'assets/[name].[ext]',
 		clean: true,
@@ -43,6 +43,7 @@ const config: webpack.Configuration = {
 	plugins: [
 		new HtmlWebpackPlugin({
 			title: isProd ? 'Calculator' : 'development mode',
+			stylesPath: isProd ? 'calc/styles/style.css' : 'styles/style.css',
 			template: path.resolve(__dirname, './src/template.html'),
 			filename: isProd ? 'calc.html' : 'index.html',
 		}),

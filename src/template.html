@@ -5,33 +5,49 @@
 	<meta charset="UTF-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<link rel="stylesheet" , href="calc/styles/style.css">
+	<!-- <link rel="stylesheet" , href="calc/styles/style.css"> -->
+	<link rel="stylesheet" , href="<%= htmlWebpackPlugin.options.stylesPath %>">
 	<title>
 		<%= htmlWebpackPlugin.options.title %>
 	</title>
 </head>
 
 <body>
-	<div id="modal-parent" class="backdrop">
-		<div class="modal">
-			<div id="close-modal-cross" class="close">x</div>
-			<div id="modal-header" class="header">modal header</div>
-			<div id="modal-context" class="content">Lorem ipsum dolor sit amet consectetur adipisicing elit. Laborum porro
+	<!-- 	<div id="test" class="modal">
+		<div class="header">modal header</div>
+		<div class="content">Lorem ipsum dolor sit amet consectetur adipisicing elit. Laborum porro
+			ducimus quasi
+			possimus dolore, enim odio deleniti atque perspiciatis eius, quibusdam dignissimos voluptas voluptatum facere
+			id culpa quas qui deserunt?
+		</div>
+	</div>
+ -->
+	<div id="modal-parent" class="backdrop modal-hidden">
+		<div id="modal" class="modal modal-hidden">
+			<div id="close-modal-cross" class="modal-close">x</div>
+			<div id="modal-header" class="modal-header">modal header</div>
+			<div id="modal-context" class="modal-content">Lorem ipsum dolor sit amet consectetur adipisicing elit. Laborum
+				porro
 				ducimus quasi
 				possimus dolore, enim odio deleniti atque perspiciatis eius, quibusdam dignissimos voluptas voluptatum facere
 				id culpa quas qui deserunt?
 			</div>
-			<div class="buttons">
+			<div class="modal-buttons buttons">
 				<button>close1</button>
 				<button>close2</button>
 				<button>close3</button>
 			</div>
 		</div>
+		<div id="modal-history-context-menu" class="modal-history-context-menu modal-hidden">
+			<nav>
+				<ul>
+					<li>delete current item</li>
+					<li>clear all</li>
+				</ul>
+			</nav>
+		</div>
 	</div>
 	<div class="container">
-		<div class="header">
-			<h1>Calculator</h1>
-		</div>
 		<div class='calculator'>
 			<input class="calc_input" id='calc_input' readonly>
 			<div class="logo_menu_container">
@@ -107,11 +123,6 @@
 			</div>
 		</div>
 	</div>
-	<div class="test">
-		<span>test</span>
-		<nav></nav>
-	</div>
-	<script src="./js/bundle.js"></script>
 </body>
 
 </html>
