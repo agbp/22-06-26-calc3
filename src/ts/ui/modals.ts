@@ -1,4 +1,4 @@
-import { HistoryElement } from "./index";
+import { MenuCommands } from './modalsTypes';
 
 export function closeModal() {
 	const modal = document.getElementById('modal') as HTMLDivElement;
@@ -25,7 +25,10 @@ export function closeContext() {
 	modalParent.classList.add('modal-hidden');
 }
 
-export function showContextMenu(ev: MouseEvent, historyList: HistoryElement[]) {
+export function showContextMenu(
+	ev: MouseEvent,
+	funcs: MenuCommands,
+) {
 	ev.preventDefault();
 	const modalParent = document.getElementById('modal-parent') as HTMLDivElement;
 	modalParent.classList.remove('modal-hidden');
@@ -37,21 +40,12 @@ export function showContextMenu(ev: MouseEvent, historyList: HistoryElement[]) {
 	modalContextMenu.onclick = (evCommand: MouseEvent) => {
 		closeContext();
 		if (!evCommand || !evCommand.target) return;
-		let { target } = ev;
+		const { target } = ev;
 		if (!target) return;
-		if ((target as HTMLElement).tagName !== 'tr') {
-			target = (target as HTMLElement).parentElement;
-		}
-		const rowId = '"' + JSON.parse((target as HTMLTableRowElement).cells[0].innerText) + '"';
-		const row = historyList.find((el: HistoryElement) => {
-			return JSON.stringify(el.date) === rowId;
-		});
-		switch ((evCommand.target as HTMLLIElement).innerText) {
-			case 'delete current item':
-				showModal('Are you sure ?', `Delete history item "${(target! as HTMLTableRowElement).innerText}" ?`);
-				break;
-			default:
-		}
+
+		const funcToRun = funcs.get((evCommand.target as HTMLLIElement).innerText);
+
+		if (funcToRun) funcToRun.func.call(funcToRun.context, target);
 	};
 }
 
@@ -85,8 +79,8 @@ modalHeader.onmousedown = (ev: MouseEvent) => {
 	dndStartY = ev.pageY - modal.offsetTop;
 };
 
-modal.onmouseup = function resetDragNDropModal(ev: MouseEvent) {
+modal.onmouseup = function resetDragNDropModal() {
 	document.onmousemove = prevOnMouseMove;
 	modalHeader.onmouseup = null;
-	modal.style.cursor = '';
+	modal.style.cursor = 'default';
 };
