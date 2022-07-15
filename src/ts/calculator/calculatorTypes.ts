@@ -24,13 +24,15 @@ export interface OperationInterface {
 }
 
 export interface HistoryElement {
-	id: string,
 	opId: OperationId,
 	operands: number[],
 }
 
+export type HistoryMap = Map<string, HistoryElement>;
+
 export interface HistoryElementAdding extends HistoryElement {
 	initialization?: boolean,
+	id?: string,
 }
 
 export interface CalculatorInterface {
@@ -39,7 +41,7 @@ export interface CalculatorInterface {
 	scientificDiv: HTMLDivElement;
 	historyList: HTMLUListElement;
 	historyTable: HTMLTableElement;
-	historyListData: HistoryElement[];
+	historyListData: HistoryMap;
 	stack: (number | OperationId)[];
 	operations: OperationInterface[];
 	waiting4NewNumber: boolean;

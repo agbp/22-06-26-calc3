@@ -12,7 +12,7 @@ export function getNewId() {
 	return JSON.stringify(new Date());
 }
 
-export function deleteChilds(el: HTMLElement) {
+export function removeChilds(el: HTMLElement) {
 	let child = el.lastElementChild;
 	while (child) {
 		el.removeChild(child);

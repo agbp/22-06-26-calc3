@@ -1,8 +1,13 @@
-import { MenuCommands, showContextMenu, showModal } from '../ui';
-import { deleteChilds, getCookie, getNewId } from '../utils';
+import {
+	closeModals,
+	ContextMenuCommands,
+	MenuCommands,
+	showContextMenu,
+	showModal,
+} from '../ui';
+import { removeChilds, getCookie, getNewId } from '../utils';
 import {
 	CalculatorInterface,
-	HistoryElement,
 	HistoryElementAdding,
 	OperationId,
 	OperationInterface,
@@ -14,7 +19,7 @@ const calculator: CalculatorInterface = {
 	scientificDiv: document.getElementById('calc_scientific') as HTMLDivElement,
 	historyList: document.getElementById('calc_history_list') as HTMLUListElement,
 	historyTable: document.getElementById('calc_history_table') as HTMLTableElement,
-	historyListData: [],
+	historyListData: new Map(),
 	stack: [],
 	waiting4NewNumber: false,
 	historyOpened: false,
@@ -145,24 +150,49 @@ const calculator: CalculatorInterface = {
 			if (target.parentElement) { target = target.parentElement; } else return;
 		}
 		const rowId = (target as HTMLTableRowElement).cells[0].innerText;
-		// showModal('Are you sure ?', `Delete history item "${(target! as HTMLTableRowElement).innerText}" ?`);
+		const funcs: MenuCommands = new Map();
+		const context = this;
+		funcs.set('yes', {
+			func: () => {
+				context.historyListData.delete(rowId);
+				context.saveHistoryList();
+				let index = 0;
+				let child = (context.historyTable.childNodes[index] as HTMLElement);
+				while (child) {
+					index += 1;
+					child = (context.historyTable.childNodes[index] as HTMLElement);
+					if (child.tagName === 'TR' && child.innerHTML.includes(rowId)) {
+						context.historyTable.removeChild(child);
+						return;
+					}
+				}
+			},
+		});
+		funcs.set('no', { func: closeModals });
+		showModal(
+			'Are you sure ?',
+			`Delete history item "${(target! as HTMLTableRowElement).innerText}" ?`,
+			funcs,
+		);
 		// result = historyList.filter((el) => el.id !== rowId);
-		let index = 0;
-		let child = (this.historyTable.childNodes[index] as HTMLElement);
-		while (child) {
-			index += 1;
-			child = (this.historyTable.childNodes[index] as HTMLElement);
-			if (child.tagName === 'TR' && child.innerHTML.includes(rowId)) {
-				this.historyTable.removeChild(child);
-				return;
-			}
-		}
 	},
 	contextMenuClearHistoryList() {
-		if (!this.historyListData || this.historyListData.length === 0) return;
-		this.historyListData.length = 0;
-		this.saveHistoryList();
-		deleteChilds(this.historyTable);
+		if (!this.historyListData || this.historyListData.size === 0) return;
+		const funcs: MenuCommands = new Map();
+		const context = this;
+		funcs.set('yes', {
+			func: () => {
+				context.historyListData.clear();
+				context.saveHistoryList();
+				removeChilds(context.historyTable);
+			},
+		});
+		funcs.set('no', { func: closeModals });
+		showModal(
+			'Are you sure ?',
+			'Delete all history items ?',
+			funcs,
+		);
 	},
 	init() {
 		const settingsBtn = document.getElementById(
@@ -259,7 +289,7 @@ const calculator: CalculatorInterface = {
 
 		this.getHistoryList();
 
-		const contextMenu: MenuCommands = new Map();
+		const contextMenu: ContextMenuCommands = new Map();
 
 		contextMenu.set('delete current item', { func: this.contextMenuDeleteCurrent, context: this });
 		contextMenu.set('clear all history', { func: this.contextMenuClearHistoryList, context: this });
@@ -302,7 +332,7 @@ const calculator: CalculatorInterface = {
 			if (operation) {
 				result = operation?.action.apply(null, operands) ?? NaN;
 				this.inputElement.value = String(result);
-				this.addToHistoryList({ opId: operation.id, operands, id: getNewId() });
+				this.addToHistoryList({ opId: operation.id, operands });
 			}
 		} else { // there is no data in stack to calculate
 			result = Number(this.inputElement.value);
@@ -314,7 +344,6 @@ const calculator: CalculatorInterface = {
 			this.addToHistoryList({
 				opId: currOperation.id,
 				operands: [operand],
-				id: getNewId(),
 			});
 			this.inputElement.value = String(result);
 		} else if ((currOperation?.arity ?? 0) > 1) {
@@ -373,18 +402,18 @@ const calculator: CalculatorInterface = {
 		opId: operationId,
 		operands,
 		initialization = false,
-		id: date,
+		id = getNewId(),
 	}: HistoryElementAdding) {
 		if (this.prevOperation
 			&& this.prevOperation.opId === operationId
 			&& this.compareOperands(this.prevOperation.operands, operands)) {
 			return;
 		}
-		this.prevOperation = { opId: operationId, operands, id: '' };
+		this.prevOperation = { opId: operationId, operands };
 		const newHistoryRow = document.createElement('tr');
 		const newHistoryDate = document.createElement('td');
 		newHistoryDate.classList.add('history-date');
-		newHistoryDate.innerText = JSON.stringify(date);
+		newHistoryDate.innerText = id;
 		const newHistoryTdOperation = document.createElement('td');
 		const operation = this.operations.find((el) => el.id === operationId);
 		if (!operation) return;
@@ -426,7 +455,7 @@ const calculator: CalculatorInterface = {
 		newHistoryRow.appendChild(newHistoryTdResult);
 		this.historyTable.appendChild(newHistoryRow);
 
-		this.historyListData.push({ opId: operationId, operands, id: date });
+		this.historyListData.set(id, { opId: operationId, operands });
 		if (initialization) return;
 		this.saveHistoryList();
 	},
@@ -434,13 +463,13 @@ const calculator: CalculatorInterface = {
 		const historyFromCookie = getCookie('historyList');
 		if (historyFromCookie) {
 			const historyListData = JSON.parse(historyFromCookie);
-			historyListData.forEach((el: HistoryElement) => {
-				this.addToHistoryList.call(this, { ...el, date: new Date(el.id), initialization: true });
+			historyListData.forEach((el: any) => {
+				this.addToHistoryList.call(this, { ...(el[1]), initialization: true, id: el[0] });
 			});
 		}
 	},
 	saveHistoryList() {
-		document.cookie = `historyList=${JSON.stringify(this.historyListData)}`;
+		document.cookie = `historyList=${JSON.stringify(Array.from(this.historyListData))}`;
 	},
 };
 

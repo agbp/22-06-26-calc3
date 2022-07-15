@@ -1,13 +1,16 @@
-import { MenuCommands } from './modalsTypes';
+import { removeChilds } from '../utils';
+import { ContextMenuCommands, MenuCommands } from './modalsTypes';
 
-export function closeModal() {
+export function closeModals() {
 	const modal = document.getElementById('modal') as HTMLDivElement;
 	modal.classList.add('modal-hidden');
+	const modalHistoryContextMenu = document.getElementById('modal-history-context-menu') as HTMLDivElement;
+	modalHistoryContextMenu.classList.add('modal-hidden');
 	const modalParent = document.getElementById('modal-parent') as HTMLDivElement;
 	modalParent.classList.add('modal-hidden');
 }
 
-export function showModal(header: string, context: string) {
+export function showModal(header: string, context: string, funcs?: MenuCommands) {
 	const modalParent = document.getElementById('modal-parent') as HTMLDivElement;
 	modalParent.classList.remove('modal-hidden');
 	const modal = document.getElementById('modal') as HTMLDivElement;
@@ -15,6 +18,22 @@ export function showModal(header: string, context: string) {
 	headerDiv.innerText = header;
 	const contextDiv = document.getElementById('modal-context') as HTMLDivElement;
 	contextDiv.innerText = context;
+	const modalButtons = document.getElementById('modal-buttons');
+	if (modalButtons) {
+		removeChilds(modalButtons);
+		if (funcs) {
+			funcs.forEach((el, key) => {
+				const button = document.createElement('button');
+				button.onclick = () => { el.func(); closeModals(); };
+				button.innerText = key;
+				modalButtons?.appendChild(button);
+			});
+		}
+		const button = document.createElement('button');
+		button.innerText = 'Cancel';
+		button.onclick = closeModals;
+		modalButtons.appendChild(button);
+	}
 	modal.classList.remove('modal-hidden');
 }
 
@@ -27,7 +46,7 @@ export function closeContext() {
 
 export function showContextMenu(
 	ev: MouseEvent,
-	funcs: MenuCommands,
+	funcs: ContextMenuCommands,
 ) {
 	ev.preventDefault();
 	const modalParent = document.getElementById('modal-parent') as HTMLDivElement;
@@ -50,11 +69,11 @@ export function showContextMenu(
 }
 
 function checkClickIsOutTheModalAndClose(ev: MouseEvent) {
-	if (ev.target && (ev.target as HTMLDivElement).id === 'modal-parent') { closeModal(); }
+	if (ev.target && (ev.target as HTMLDivElement).id === 'modal-parent') { closeModals(); }
 }
 
 const closeModalCross = document.getElementById('close-modal-cross') as HTMLDivElement;
-closeModalCross.addEventListener('click', closeModal);
+closeModalCross.addEventListener('click', closeModals);
 
 const backDrop = document.getElementById('modal-parent') as HTMLDivElement;
 backDrop.addEventListener('click', checkClickIsOutTheModalAndClose);
@@ -70,17 +89,18 @@ function moveModal(ev: MouseEvent) {
 
 const modalHeader = document.getElementById('modal-header') as HTMLDivElement;
 let prevOnMouseMove: ((this: GlobalEventHandlers, ev: MouseEvent) => any) | null = null;
+let prevOnMouseUp: ((this: GlobalEventHandlers, ev: MouseEvent) => any) | null = null;
 modalHeader.onmousedown = (ev: MouseEvent) => {
-	modal.style.position = 'absolute';
+	// modal.style.position = 'absolute';
 	modal.style.cursor = 'move';
 	prevOnMouseMove = document.onmousemove;
 	document.onmousemove = moveModal;
 	dndStartX = ev.pageX - modal.offsetLeft;
 	dndStartY = ev.pageY - modal.offsetTop;
-};
-
-modal.onmouseup = function resetDragNDropModal() {
-	document.onmousemove = prevOnMouseMove;
-	modalHeader.onmouseup = null;
-	modal.style.cursor = 'default';
+	prevOnMouseUp = document.onmouseup;
+	document.onmouseup = function resetDragNDropModal() {
+		document.onmousemove = prevOnMouseMove;
+		document.onmouseup = prevOnMouseUp;
+		modal.style.cursor = 'default';
+	};
 };
