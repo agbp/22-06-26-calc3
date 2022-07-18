@@ -4,8 +4,8 @@ import {
 	MenuCommands,
 	showContextMenu,
 	showModal,
-} from '../ui';
-import { removeChilds, getCookie, getNewId } from '../utils';
+} from '../common/ui';
+import { removeChilds, getCookie, getNewId } from '../common/utils';
 import {
 	CalculatorInterface,
 	HistoryElementAdding,
